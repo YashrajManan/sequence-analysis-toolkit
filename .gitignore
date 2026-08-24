@@ -1,12 +1,20 @@
-# build helper (throwaway, not part of the project)
+# --- learning / scaffold notebooks (kept private, not part of the public repo) ---
+01_build.ipynb
+01_build_tried_hands_on_effort_practiced.ipynb
+02_build.R
+02_build_R.ipynb
 _gen.py
 
-# data is downloaded, not committed
+# --- data: fetched from the NCBI Entrez API at runtime, not committed ---
 data/*
 !data/.gitkeep
+example.fasta
+sequence.fasta
 
-# large / generated outputs (keep small figures + CSVs you want to show)
+# --- python / jupyter / R junk ---
 *.pyc
 __pycache__/
 .ipynb_checkpoints/
-example.fasta
+.Rhistory
+.RData
+.Rproj.user/
