@@ -1,0 +1,12 @@
+# build helper (throwaway, not part of the project)
+_gen.py
+
+# data is downloaded, not committed
+data/*
+!data/.gitkeep
+
+# large / generated outputs (keep small figures + CSVs you want to show)
+*.pyc
+__pycache__/
+.ipynb_checkpoints/
+example.fasta
