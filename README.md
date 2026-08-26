@@ -4,7 +4,7 @@ A small toolkit for basic DNA sequence analysis, written from first principles i
 validated against established libraries. I use the human insulin (*INS*) mRNA as a worked example, fetched
 live from NCBI, and compute its base composition, coding potential, and protein product.
 
-![GC skew across NM_000207](results/gc_skew.png)
+![GC skew across NM_000207](results_py/gc_skew.png)
 
 ## 1. Research question
 
@@ -60,11 +60,11 @@ to confirm the results are implementation-independent.
 | ORFs (forward, ≥60 bp) | 1 |
 | longest ORF | 333 bp |
 
-Full table in [`results/summary.csv`](results/summary.csv).
+Full table in [`results_py/summary.csv`](results_py/summary.csv).
 
 ## 7. Figures
 
-`results/gc_skew.png` — GC skew across the transcript in 50 bp windows (shown above).
+`results_py/gc_skew.png` — GC skew across the transcript in 50 bp windows (shown above).
 
 ## 8. Limitations
 
@@ -80,6 +80,15 @@ this is **preproinsulin** (signal peptide, B-chain, C-peptide, A-chain). The fro
 Biopython and seqinr exactly, and the ~0.64 GC content is consistent with a human coding transcript. So the
 toolkit correctly recovers a real, annotated protein from raw mRNA.
 
+## Language comparison (Python vs R)
+
+The toolkit is implemented twice — **Python** (Biopython) and **R** (seqinr) — on the same NCBI record.
+The results are **identical**: GC content 0.6387, one 333 bp forward ORF, top 3-mer `CTG`, and the same
+110-residue preproinsulin translation (each cross-checked against its own library). Matching outputs from
+two independent implementations is a reproducibility check — the biology doesn't depend on one toolchain.
+The differences are idiomatic, not numerical: R is 1-indexed with inclusive ranges, uses named vectors as
+lookup tables, and needed care with operator precedence in the GC-skew formula `(g - c) / (g + c)`.
+
 ## 10. Reproduce
 
 ```bash
@@ -87,9 +96,9 @@ toolkit correctly recovers a real, annotated protein from raw mRNA.
 pip install biopython matplotlib
 # open sequence_analysis_toolkit.ipynb and run all cells
 
-# R (VS Code R terminal or local)
+# R (RStudio)
 install.packages(c("rentrez", "seqinr"))
-# run sequence_analysis_toolkit.R  (added after the R version is validated)
+# open sequence_analysis_toolkit.R in RStudio and Source it
 ```
 
 Data is pulled live from NCBI (accession `NM_000207`); change the accession to run the toolkit on any other
@@ -111,7 +120,9 @@ biological-sequence handling, and reproducible, cross-validated code.*
 
 ```
 sequence_analysis_toolkit.ipynb   # Python implementation
-sequence_analysis_toolkit.R       # R implementation (added after validation)
-results/summary.csv               # per-sequence metrics
-results/gc_skew.png               # GC-skew figure
+sequence_analysis_toolkit.R       # R implementation (RStudio)
+results_py/summary.csv            # Python: per-sequence metrics
+results_py/gc_skew.png            # Python: GC-skew figure
+results_R/summary_R.csv           # R: per-sequence metrics
+results_R/gc_skew_R.png           # R: GC-skew figure
 ```

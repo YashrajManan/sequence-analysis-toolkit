@@ -1,15 +1,16 @@
-# --- learning / scaffold notebooks (kept private, not part of the public repo) ---
+# --- learning / scaffold files (kept private, not part of the public repo) ---
 01_build.ipynb
 01_build_tried_hands_on_effort_practiced.ipynb
 02_build.R
-02_build_R.ipynb
+02_build_tried_handson_practiced.R
 _gen.py
 
-# --- data: fetched from the NCBI Entrez API at runtime, not committed ---
-data/*
-!data/.gitkeep
+# --- fetched data (NCBI Entrez), not committed; keep the folder placeholders ---
+data_py/*
+!data_py/.gitkeep
+data_R/*
+!data_R/.gitkeep
 example.fasta
-sequence.fasta
 
 # --- python / jupyter / R junk ---
 *.pyc
