@@ -1,95 +1,100 @@
 # Sequence Analysis Toolkit
 
-A small toolkit for basic DNA sequence analysis, written from first principles in **Python and R** and
-validated against established libraries. I use the human insulin (*INS*) mRNA as a worked example, fetched
-live from NCBI, and compute its base composition, coding potential, and protein product.
+A DNA sequence-analysis toolkit built from first principles in **Python and R**, validated against
+established libraries (Biopython, seqinr), applied to the real human insulin (*INS*) mRNA fetched live
+from NCBI.
 
 ![GC skew across NM_000207](results_py/gc_skew.png)
 
-## 1. Research question
+## Aim
 
-For a real human gene, can I compute the standard sequence properties — GC content, GC skew, k-mer
-frequencies, reverse complement, open reading frames (ORFs), and protein translation — from scratch, and
-confirm they agree with reference implementations?
+Given nothing but a gene's accession number, can I go from raw DNA text to a real biological
+read-out — composition, coding regions, protein sequence — using logic I implemented myself, not a
+black-box library call, and confirm the result agrees exactly with trusted reference implementations?
 
-## 2. Biological background
+## Objective
 
-DNA is a string over A, C, G, T, but each operation has a biological meaning: GC content reflects base
-composition (and affects melting temperature); GC skew relates to strand asymmetry; ORFs mark candidate
-protein-coding regions (ATG → in-frame stop); and translation converts codons to amino acids. Insulin is a
-good test case because its mRNA contains a single, well-characterised coding sequence (preproinsulin).
+Implement, from scratch, in both Python and R: GC content, GC skew, k-mer frequency counting, reverse
+complement, ORF (open reading frame) detection, and codon-table translation. Cross-validate every
+function against Biopython (Python) and seqinr (R). Apply the full toolkit to one real, well-annotated
+human gene and confirm the recovered protein matches the known biology.
 
-## 3. Dataset
+## Data fetch
 
-- **Source:** NCBI Entrez API (RefSeq accession **`NM_000207`**, human insulin mRNA).
-- **Access:** fetched programmatically in code — `Bio.Entrez` (Python) / `rentrez` (R) — not a manual download.
-- **Size:** one transcript, 465 nucleotides.
+Real NCBI RefSeq accession **`NM_000207`** (human insulin mRNA), fetched programmatically via the NCBI
+Entrez API — `Bio.Entrez` in Python, `rentrez` in R — not a manually downloaded or bundled tutorial
+file. The accession is a parameter, not a hardcoded string, so the same toolkit runs on any gene by
+changing one value.
 
-## 4. Methods
+## Data describe
 
-Each function is implemented by hand and cross-checked against a library:
+One real transcript: 465 nucleotides, RefSeq-curated (NCBI's own reconciliation of historical Sanger
+cDNA sequencing, Human Genome Project genomic sequence, expressed sequence tags, and modern RNA-seq
+read alignments into one representative, annotated record — see `PROJECT_NARRATIVE.md` for the full
+real data-provenance chain). Contains one annotated coding sequence (CDS) for preproinsulin.
 
-| Task | From scratch | Cross-check |
-|------|--------------|-------------|
-| Parsing | custom FASTA parser | Biopython `SeqIO` / R `readLines` |
-| GC content, skew, k-mers | base Python / base R | seqinr (R) |
-| Reverse complement | dictionary map + reverse | Biopython / seqinr |
-| Translation | codon-table lookup | Biopython `Seq.translate` / seqinr `translate` |
+## Methods / Workflow — what we did
 
-Python was the primary language (Biopython makes sequence handling clean); the analysis is reproduced in R
-to confirm the results are implementation-independent.
+1. Fetch the mRNA record from NCBI Entrez and parse it with a custom-built FASTA parser (cross-checked
+   against Biopython's `SeqIO` / R's `readLines`).
+2. Compute GC content and windowed GC skew by hand (base Python / base R), cross-checked against
+   seqinr.
+3. Count k-mer (3-mer) frequencies.
+4. Compute the reverse complement via a dictionary lookup + reversal, verified with a structural
+   self-check: the involution property `revcomp(revcomp(x)) == x` must hold.
+5. Scan all three forward reading frames for ORFs (`ATG` to the next in-frame stop codon).
+6. Translate the longest ORF via a hand-built 64-entry codon table, and compare to Biopython's/
+   seqinr's own `translate()`.
+7. Repeat the entire pipeline independently in R, to confirm the results are implementation-independent,
+   not an artifact of one toolchain.
 
-## 5. Analysis pipeline
-
-1. Fetch the mRNA from the Entrez API and cache it locally.
-2. Parse the FASTA (custom parser, verified against the library).
-3. Compute GC content and windowed GC skew.
-4. Count k-mers.
-5. Compute the reverse complement (checked with the involution `revcomp(revcomp(x)) == x`).
-6. Find ORFs in the three forward frames.
-7. Translate the longest ORF and compare to the library translation.
-8. Write a summary CSV and the GC-skew figure.
-
-## 6. Results
+## Results
 
 | metric | value |
 |--------|-------|
 | length | 465 bp |
-| GC content | 0.639 |
+| GC content | 0.6387 |
 | distinct 3-mers | 60 (most frequent: `CTG`) |
 | ORFs (forward, ≥60 bp) | 1 |
 | longest ORF | 333 bp |
+| translated protein | 110 residues, `MALWMRLLPLL...`, ends in stop |
 
-Full table in [`results_py/summary.csv`](results_py/summary.csv).
+**Python and R produced identical results** — same GC content, same single 333 bp forward ORF, same top
+3-mer, same 110-residue translation — each independently cross-checked against its own language's
+reference library. Full table: [`results_py/summary.csv`](results_py/summary.csv).
 
-## 7. Figures
+## Biology interpretation of results
 
-`results_py/gc_skew.png` — GC skew across the transcript in 50 bp windows (shown above).
+The single 333 bp ORF translates to a 110-residue protein beginning `MALWMRLLPLL...` and ending in a
+stop codon — this is real, recognizable **preproinsulin** (signal peptide, B-chain, C-peptide, A-chain).
+The ~0.64 GC content is consistent with real human coding DNA (typically GC-richer than introns/
+intergenic regions, since G–C base pairs have 3 hydrogen bonds vs. A–T's 2, affecting both melting
+behavior and, over evolutionary time, coding-region base composition). GC skew is reported for
+completeness but isn't biologically meaningful at this scale — the classic replication-origin/leading-
+vs-lagging-strand skew signal only applies at genome scale, not on a 465 bp mRNA; that's a real, honest
+scope limitation, not a hidden gap. The reverse-complement involution check passing, and the from-scratch
+translation matching Biopython/seqinr exactly, are both real correctness proofs, not just "it ran without
+error."
 
-## 8. Limitations
+## Learning through project
 
-- ORF detection covers the **three forward frames only** — reverse-strand ORFs are not searched.
-- This is a **single sequence**, so nothing here generalises.
-- GC skew is really a genome / replication-origin–scale signal; on a 465 bp mRNA it is included for
-  completeness rather than biological meaning.
+This was the foundational project in the portfolio, and its core lesson carried forward into every later
+one: build your own implementation of a concept before trusting a library's version of it, and design a
+correctness check into the function itself wherever possible (the involution test) rather than relying
+solely on comparison against ground truth. It was also the first appearance of the "validate against a
+trusted second implementation" pattern — running the identical analysis independently in Python and R and
+requiring exact agreement — which later became the standing cross-language validation discipline used
+across the rest of this portfolio, and which caught a real, otherwise-invisible bug in a much later
+project (a denominator error found only because two independent language implementations disagreed on
+the same number).
 
-## 9. Biological interpretation
+## Limitations
 
-The single 333 bp ORF translates to a 110-residue protein beginning `MALWMRLLPLL...` and ending in a stop —
-this is **preproinsulin** (signal peptide, B-chain, C-peptide, A-chain). The from-scratch translation matches
-Biopython and seqinr exactly, and the ~0.64 GC content is consistent with a human coding transcript. So the
-toolkit correctly recovers a real, annotated protein from raw mRNA.
+ORF detection covers the three forward reading frames only — reverse-strand ORFs are not searched. This
+is a single sequence (n=1), so nothing here generalizes genome-wide. GC skew is included for
+completeness, not because it carries real biological meaning at mRNA scale.
 
-## Language comparison (Python vs R)
-
-The toolkit is implemented twice — **Python** (Biopython) and **R** (seqinr) — on the same NCBI record.
-The results are **identical**: GC content 0.6387, one 333 bp forward ORF, top 3-mer `CTG`, and the same
-110-residue preproinsulin translation (each cross-checked against its own library). Matching outputs from
-two independent implementations is a reproducibility check — the biology doesn't depend on one toolchain.
-The differences are idiomatic, not numerical: R is 1-indexed with inclusive ranges, uses named vectors as
-lookup tables, and needed care with operator precedence in the GC-skew formula `(g - c) / (g + c)`.
-
-## 10. Reproduce
+## Reproduce
 
 ```bash
 # Python (Google Colab or local)
@@ -101,16 +106,8 @@ install.packages(c("rentrez", "seqinr"))
 # open sequence_analysis_toolkit.R in RStudio and Source it
 ```
 
-Data is pulled live from NCBI (accession `NM_000207`); change the accession to run the toolkit on any other
-gene.
-
-## 11. Abstract
-
-*Implemented a DNA sequence-analysis toolkit in Python and R that fetches gene records from the NCBI Entrez
-API and computes GC content, GC skew, k-mer spectra, reverse complements, ORFs, and protein translation from
-first principles, validated against Biopython and seqinr. Applied to the human insulin mRNA, it recovers the
-preproinsulin ORF and reproduces the reference translation exactly. Demonstrates API-based data access,
-biological-sequence handling, and reproducible, cross-validated code.*
+Data is pulled live from NCBI (accession `NM_000207`); change the accession to run the toolkit on any
+other gene.
 
 ## Tech
 
@@ -126,3 +123,8 @@ results_py/gc_skew.png            # Python: GC-skew figure
 results_R/summary_R.csv           # R: per-sequence metrics
 results_R/gc_skew_R.png           # R: GC-skew figure
 ```
+
+## License
+
+All rights reserved — see `LICENSE`. This repository is public for portfolio/demonstration purposes
+only; no permission is granted to copy, modify, or reuse any part of it.
