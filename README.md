@@ -83,10 +83,9 @@ one: build your own implementation of a concept before trusting a library's vers
 correctness check into the function itself wherever possible (the involution test) rather than relying
 solely on comparison against ground truth. It was also the first appearance of the "validate against a
 trusted second implementation" pattern — running the identical analysis independently in Python and R and
-requiring exact agreement — which later became the standing cross-language validation discipline used
-across the rest of this portfolio, and which caught a real, otherwise-invisible bug in a much later
-project (a denominator error found only because two independent language implementations disagreed on
-the same number).
+requiring exact agreement — which became a standing cross-language validation discipline used across the
+rest of this portfolio, catching otherwise-invisible errors that a single implementation running without
+any crash would never have surfaced on its own.
 
 ## Limitations
 
